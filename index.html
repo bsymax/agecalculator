@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Age Calculator — Calculate Your Exact Age Online for Free</title>
+  <meta name="description" content="Free online age calculator. Calculate your exact age in years, months, weeks, and days. Includes next birthday countdown, zodiac sign, and shareable age card. Works entirely in your browser.">
+  <link rel="canonical" href="https://agecalculator.help/">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            warm: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              300: '#fdba74',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+    .toast-in { animation: slideDown 0.25s ease-out; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card-breathe { animation: breathe 3s ease-in-out infinite; }
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    input[type="date"]:hover::-webkit-calendar-picker-indicator {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="bg-orange-50 dark:bg-gray-950 text-gray-800 dark:text-gray-100 min-h-screen transition-colors">
+
+  <!-- Header -->
+  <header class="border-b border-orange-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-warm-500 rounded-full flex items-center justify-center text-white text-sm">🎂</div>
+        <span class="text-lg font-semibold tracking-tight text-gray-700 dark:text-gray-200">Age Calculator</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="themeToggle" class="w-9 h-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-yellow-400" title="Toggle theme">
+          <svg class="w-5 h-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <svg class="w-5 h-5 hidden dark:block drop-shadow-[0_0_6px_rgba(250,204,21,0.6)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-3xl mx-auto px-4 py-6">
+
+    <!-- Toast -->
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden"></div>
+
+    <!-- Input Card -->
+    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-orange-200 dark:border-gray-800 shadow-sm p-6 md:p-8 mb-5">
+      <h1 class="text-2xl md:text-3xl font-bold text-center mb-2 text-gray-800 dark:text-gray-100">Age Calculator</h1>
+      <p class="text-center text-gray-500 dark:text-gray-400 text-sm mb-6">Find out your exact age down to the day</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <!-- Date of Birth -->
+        <div>
+          <label for="dob" class="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1.5">Date of Birth</label>
+          <input type="date" id="dob" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm outline-none focus:ring-2 focus:ring-warm-400 focus:border-warm-400 transition-all" value="1985-01-01">
+        </div>
+        <!-- Age at Date -->
+        <div>
+          <label for="ageAt" class="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1.5">Age at Date</label>
+          <input type="date" id="ageAt" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm outline-none focus:ring-2 focus:ring-warm-400 focus:border-warm-400 transition-all">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center gap-3 flex-wrap">
+        <button id="calcBtn" class="px-8 py-3 bg-warm-500 hover:bg-warm-600 text-white font-semibold rounded-xl transition-colors text-base shadow-sm shadow-warm-200 dark:shadow-none">
+          Calculate Age
+        </button>
+        <button id="todayBtn" class="px-4 py-3 text-sm text-warm-600 dark:text-warm-400 font-medium hover:underline">Use Today</button>
+      </div>
+    </div>
+
+    <!-- Results (hidden until calculated) -->
+    <div id="results" class="hidden">
+
+      <!-- Main Age Card -->
+      <div class="bg-white dark:bg-gray-900 rounded-2xl border border-orange-200 dark:border-gray-800 shadow-sm p-6 md:p-8 mb-5 text-center">
+        <div class="text-sm text-gray-400 dark:text-gray-500 mb-1">Your Age</div>
+        <div id="ageMain" class="text-3xl md:text-4xl font-bold text-warm-600 dark:text-warm-400 mb-5"></div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div id="ageYears" class="bg-orange-50 dark:bg-warm-900/20 rounded-xl p-3">
+            <div class="text-2xl font-bold text-warm-600 dark:text-warm-400"></div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Years</div>
+          </div>
+          <div id="ageMonths" class="bg-orange-50 dark:bg-warm-900/20 rounded-xl p-3">
+            <div class="text-2xl font-bold text-warm-600 dark:text-warm-400"></div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Months</div>
+          </div>
+          <div id="ageWeeks" class="bg-orange-50 dark:bg-warm-900/20 rounded-xl p-3">
+            <div class="text-2xl font-bold text-warm-600 dark:text-warm-400"></div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Weeks</div>
+          </div>
+          <div id="ageDays" class="bg-orange-50 dark:bg-warm-900/20 rounded-xl p-3">
+            <div class="text-2xl font-bold text-warm-600 dark:text-warm-400"></div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Days</div>
+          </div>
+        </div>
+
+        <!-- Detailed breakdown -->
+        <div id="detailBreakdown" class="mt-5 pt-4 border-t border-gray-100 dark:border-gray-800 text-sm text-gray-500 dark:text-gray-400 space-y-1"></div>
+      </div>
+
+      <!-- Extra Info Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+
+        <!-- Next Birthday -->
+        <div id="nextBirthdayCard" class="bg-white dark:bg-gray-900 rounded-2xl border border-orange-200 dark:border-gray-800 shadow-sm p-5">
+          <div class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">🎉 Next Birthday</div>
+          <div id="nextBirthdayContent" class="text-sm text-gray-500 dark:text-gray-400"></div>
+        </div>
+
+        <!-- Zodiac + Day of Week -->
+        <div class="bg-white dark:bg-gray-900 rounded-2xl border border-orange-200 dark:border-gray-800 shadow-sm p-5">
+          <div class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">✨ Born Under</div>
+          <div id="zodiacContent" class="text-sm text-gray-500 dark:text-gray-400 space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- Share Card -->
+      <div class="bg-white dark:bg-gray-900 rounded-2xl border border-orange-200 dark:border-gray-800 shadow-sm p-6 mb-5">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">🖼️ Share Your Age Card</span>
+          <button id="downloadCardBtn" class="px-4 py-2 bg-warm-500 hover:bg-warm-600 text-white text-sm font-medium rounded-lg transition-colors">
+            Download PNG
+          </button>
+        </div>
+        <div class="flex justify-center">
+          <canvas id="shareCanvas" class="rounded-xl border border-gray-100 dark:border-gray-800 max-w-full" width="600" height="340"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- How to Use -->
+    <section class="mb-8">
+      <h2 class="text-xl font-bold mb-3 text-gray-800 dark:text-gray-200">How to Use This Tool</h2>
+      <ol class="list-decimal list-inside text-gray-500 dark:text-gray-400 space-y-2 text-sm">
+        <li>Select your <strong>Date of Birth</strong> in the first field.</li>
+        <li>Choose the <strong>Age at Date</strong> (defaults to today) to calculate your age on a specific date.</li>
+        <li>Click <strong>Calculate Age</strong> to see your exact age in years, months, weeks, and days.</li>
+        <li>Scroll down to see your <strong>next birthday countdown</strong>, <strong>zodiac sign</strong>, and the <strong>day of the week</strong> you were born.</li>
+        <li>Click <strong>Download PNG</strong> to save a shareable age card image.</li>
+      </ol>
+    </section>
+
+    <!-- FAQ -->
+    <section class="mb-8">
+      <h2 class="text-xl font-bold mb-3 text-gray-800 dark:text-gray-200">FAQ</h2>
+      <div class="space-y-4 text-sm text-gray-500 dark:text-gray-400">
+        <div>
+          <h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-1">How is age calculated?</h3>
+          <p>Age is calculated by comparing your date of birth with the target date. It accounts for leap years and varying month lengths to give you the exact age.</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-1">Does this account for leap years?</h3>
+          <p>Yes! The calculator uses JavaScript's built-in Date engine, which correctly handles all leap years past and future.</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-1">Is my data safe?</h3>
+          <p>Absolutely. All calculations happen in your browser — your birth date is never sent to any server or stored anywhere.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- More Free Tools -->
+    <section class="mb-8">
+      <h2 class="text-xl font-bold mb-3 text-gray-800 dark:text-gray-200">More Free Tools</h2>
+      <div class="flex flex-wrap gap-3">
+        <a href="https://jsonformatter.fyi/" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-medium text-warm-600 dark:text-warm-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">JSON Formatter</a>
+        <a href="https://uuidgenerator.fyi/" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-medium text-warm-600 dark:text-warm-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">UUID Generator</a>
+        <a href="https://caseconverter.fyi/" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-medium text-warm-600 dark:text-warm-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Case Converter</a>
+        <a href="https://wordcounter.fyi/" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-medium text-warm-600 dark:text-warm-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Word Counter</a>
+        <a href="https://rgbtohexconverter.fyi/" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-medium text-warm-600 dark:text-warm-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">RGB to HEX</a>
+        <a href="https://jwtdecoder.fyi/" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-medium text-warm-600 dark:text-warm-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">JWT Decoder</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-orange-200 dark:border-gray-800 py-6 text-center text-xs text-gray-400 dark:text-gray-600">
+    <p>Age Calculator — No data uploaded to server. Everything runs locally in your browser.</p>
+  </footer>
+
+  <script>
+    const $ = id => document.getElementById(id)
+    const dobInput = $('dob')
+    const ageAtInput = $('ageAt')
+    const calcBtn = $('calcBtn')
+    const todayBtn = $('todayBtn')
+    const results = $('results')
+    const toast = $('toast')
+    const themeToggle = $('themeToggle')
+
+    // --- Dark mode ---
+    function applyTheme(dark) {
+      document.documentElement.classList.toggle('dark', dark)
+      localStorage.setItem('theme', dark ? 'dark' : 'light')
+    }
+    themeToggle.addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')))
+    applyTheme(localStorage.getItem('theme') === 'dark')
+
+    // --- Toast ---
+    let toastTimer
+    function showToast(msg) {
+      toast.innerHTML = `<div class="toast-in px-4 py-2 rounded-lg bg-gray-900 dark:bg-gray-700 text-white text-sm shadow-lg">${msg}</div>`
+      toast.classList.remove('hidden')
+      clearTimeout(toastTimer)
+      toastTimer = setTimeout(() => toast.classList.add('hidden'), 2000)
+    }
+
+    // --- Set today's date ---
+    function setToday() {
+      const today = new Date()
+      ageAtInput.value = today.toISOString().split('T')[0]
+    }
+    todayBtn.addEventListener('click', setToday)
+    setToday() // default
+
+    // --- Zodiac (Western) ---
+    function getZodiac(month, day) {
+      const signs = [
+        { name: 'Capricorn', emoji: '♑', start: [1, 1], end: [1, 19] },
+        { name: 'Aquarius', emoji: '♒', start: [1, 20], end: [2, 18] },
+        { name: 'Pisces', emoji: '♓', start: [2, 19], end: [3, 20] },
+        { name: 'Aries', emoji: '♈', start: [3, 21], end: [4, 19] },
+        { name: 'Taurus', emoji: '♉', start: [4, 20], end: [5, 20] },
+        { name: 'Gemini', emoji: '♊', start: [5, 21], end: [6, 20] },
+        { name: 'Cancer', emoji: '♋', start: [6, 21], end: [7, 22] },
+        { name: 'Leo', emoji: '♌', start: [7, 23], end: [8, 22] },
+        { name: 'Virgo', emoji: '♍', start: [8, 23], end: [9, 22] },
+        { name: 'Libra', emoji: '♎', start: [9, 23], end: [10, 22] },
+        { name: 'Scorpio', emoji: '♏', start: [10, 23], end: [11, 21] },
+        { name: 'Sagittarius', emoji: '♐', start: [11, 22], end: [12, 21] },
+        { name: 'Capricorn', emoji: '♑', start: [12, 22], end: [12, 31] },
+      ]
+      for (const s of signs) {
+        if ((month === s.start[0] && day >= s.start[1]) || (month === s.end[0] && day <= s.end[1])) {
+          return s
+        }
+      }
+      return signs[0] // fallback
+    }
+
+    // --- Chinese Zodiac ---
+    function getChineseZodiac(year) {
+      const animals = ['Rat 🐀', 'Ox 🐂', 'Tiger 🐅', 'Rabbit 🐇', 'Dragon 🐉', 'Snake 🐍', 'Horse 🐎', 'Goat 🐐', 'Monkey 🐒', 'Rooster 🐓', 'Dog 🐕', 'Pig 🐖']
+      return animals[(year - 4) % 12]
+    }
+
+    // --- Day of week name ---
+    const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+    // --- Ordinal suffix ---
+    function ordinal(n) {
+      const s = ['th', 'st', 'nd', 'rd']
+      const v = n % 100
+      return n + (s[(v - 20) % 10] || s[v] || s[0])
+    }
+
+    // --- Calculate ---
+    function calculate() {
+      const dob = new Date(dobInput.value + 'T00:00:00')
+      const ageAt = new Date(ageAtInput.value + 'T00:00:00')
+
+      if (isNaN(dob.getTime()) || isNaN(ageAt.getTime())) {
+        results.classList.add('hidden')
+        return
+      }
+
+      if (dob > ageAt) {
+        results.classList.add('hidden')
+        showToast('Date of birth must be before the age-at date')
+        return
+      }
+
+      results.classList.remove('hidden')
+
+      // --- Core age math ---
+      let years = ageAt.getFullYear() - dob.getFullYear()
+      let months = ageAt.getMonth() - dob.getMonth()
+      let days = ageAt.getDate() - dob.getDate()
+
+      if (days < 0) {
+        months--
+        // Get days in previous month
+        const prevMonth = new Date(ageAt.getFullYear(), ageAt.getMonth(), 0)
+        days += prevMonth.getDate()
+      }
+      if (months < 0) {
+        years--
+        months += 12
+      }
+
+      // Total days / weeks
+      const diffMs = ageAt - dob
+      const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+      // More precise: use UTC to avoid DST issues
+      const utcDiff = Date.UTC(ageAt.getFullYear(), ageAt.getMonth(), ageAt.getDate()) - Date.UTC(dob.getFullYear(), dob.getMonth(), dob.getDate())
+      const preciseDays = Math.floor(utcDiff / (1000 * 60 * 60 * 24))
+      const totalWeeks = Math.floor(preciseDays / 7)
+      const remainingDays = preciseDays % 7
+      const totalMonths = years * 12 + months
+
+      // --- Main age display ---
+      const parts = []
+      if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`)
+      if (months > 0) parts.push(`${months} month${months > 1 ? 's' : ''}`)
+      if (preciseDays > 0 && years === 0 && months === 0) parts.push(`${preciseDays} day${preciseDays > 1 ? 's' : ''}`)
+
+      let mainText
+      if (years > 0) {
+        mainText = `${years} year${years > 1 ? 's' : ''}, ${months} month${months > 1 ? 's' : ''}, `
+        const weekRemainder = preciseDays % 7
+        if (preciseDays >= 7) {
+          mainText += `${totalWeeks % 52} week${(totalWeeks % 52) > 1 ? 's' : ''}, and ${weekRemainder} day${weekRemainder !== 1 ? 's' : ''}`
+        } else {
+          mainText += `and ${preciseDays} day${preciseDays !== 1 ? 's' : ''}`
+        }
+      } else if (months > 0) {
+        mainText = `${months} month${months > 1 ? 's' : ''}, ${preciseDays} day${preciseDays !== 1 ? 's' : ''}`
+      } else {
+        mainText = `${preciseDays} day${preciseDays !== 1 ? 's' : ''}`
+      }
+      $('ageMain').textContent = mainText
+
+      // --- Cards ---
+      $('ageYears').querySelector('div:first-child').textContent = years
+      $('ageMonths').querySelector('div:first-child').textContent = totalMonths.toLocaleString()
+      $('ageWeeks').querySelector('div:first-child').textContent = totalWeeks.toLocaleString()
+      $('ageDays').querySelector('div:first-child').textContent = preciseDays.toLocaleString()
+
+      // --- Detailed breakdown ---
+      $('detailBreakdown').innerHTML = `
+        <div><strong>Age in Years:</strong> ${years} year${years > 1 ? 's' : ''}, ${months} month${months > 1 ? 's' : ''}, and ${preciseDays} day${preciseDays !== 1 ? 's' : ''}</div>
+        <div><strong>Age in Months:</strong> ${totalMonths.toLocaleString()} month${totalMonths > 1 ? 's' : ''}, ${preciseDays % 7} day${(preciseDays % 7) !== 1 ? 's' : ''}</div>
+        <div><strong>Age in Weeks:</strong> ${totalWeeks.toLocaleString()} week${totalWeeks > 1 ? 's' : ''}</div>
+        <div><strong>Age in Days:</strong> ${preciseDays.toLocaleString()} day${preciseDays > 1 ? 's' : ''}</div>
+      `
+
+      // --- Next Birthday ---
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      let nextBday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate())
+      if (nextBday <= today) {
+        nextBday = new Date(today.getFullYear() + 1, dob.getMonth(), dob.getDate())
+      }
+      const daysUntil = Math.ceil((nextBday - today) / (1000 * 60 * 60 * 24))
+      const nextAge = nextBday.getFullYear() - dob.getFullYear()
+      const bdayDay = DAY_NAMES[nextBday.getDay()]
+      const bdayDate = `${MONTH_NAMES[nextBday.getMonth()]} ${ordinal(nextBday.getDate())}, ${nextBday.getFullYear()}`
+
+      if (daysUntil === 0) {
+        $('nextBirthdayContent').innerHTML = `<p class="text-lg font-bold text-warm-600 dark:text-warm-400">🎂 Today is your birthday! Happy ${nextAge}${ordinal(nextAge % 10)} Birthday!</p>`
+      } else {
+        $('nextBirthdayContent').innerHTML = `
+          <p class="text-lg font-bold text-warm-600 dark:text-warm-400 mb-1">${daysUntil} day${daysUntil > 1 ? 's' : ''} away</p>
+          <p>Your ${ordinal(nextAge)} birthday is on <strong>${bdayDate}</strong></p>
+          <p class="mt-1">It falls on a <strong>${bdayDay}</strong></p>
+        `
+      }
+
+      // --- Zodiac + Day of Week Born ---
+      const zodiac = getZodiac(dob.getMonth() + 1, dob.getDate())
+      const chineseZodiac = getChineseZodiac(dob.getFullYear())
+      const bornDay = DAY_NAMES[dob.getDay()]
+      const bornDate = `${MONTH_NAMES[dob.getMonth()]} ${ordinal(dob.getDate())}, ${dob.getFullYear()}`
+      $('zodiacContent').innerHTML = `
+        <div>🌌 <strong>Western:</strong> ${zodiac.emoji} ${zodiac.name}</div>
+        <div>🧧 <strong>Chinese:</strong> ${chineseZodiac}</div>
+        <div class="mt-2">📅 <strong>Born on:</strong> ${bornDay}, ${bornDate}</div>
+      `
+
+      // --- Draw Share Card ---
+      drawShareCard(years, months, preciseDays, totalWeeks, totalMonths, dob, nextAge, daysUntil)
+    }
+
+    // --- Share Card Canvas ---
+    function drawShareCard(years, months, preciseDays, totalWeeks, totalMonths, dob, nextAge, daysUntil) {
+      const canvas = $('shareCanvas')
+      const ctx = canvas.getContext('2d')
+      const W = canvas.width
+      const H = canvas.height
+      const isDark = document.documentElement.classList.contains('dark')
+
+      // Background gradient
+      const bgGrad = ctx.createLinearGradient(0, 0, W, H)
+      if (isDark) {
+        bgGrad.addColorStop(0, '#1e293b')
+        bgGrad.addColorStop(1, '#0f172a')
+      } else {
+        bgGrad.addColorStop(0, '#fff7ed')
+        bgGrad.addColorStop(1, '#ffedd5')
+      }
+      ctx.fillStyle = bgGrad
+      ctx.fillRect(0, 0, W, H)
+
+      // Decorative circles
+      ctx.fillStyle = isDark ? 'rgba(251,146,60,0.08)' : 'rgba(251,146,60,0.12)'
+      ctx.beginPath()
+      ctx.arc(W - 60, 60, 100, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.arc(50, H - 50, 70, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Birthday cake icon
+      ctx.font = '40px serif'
+      ctx.fillText('🎂', 50, 70)
+
+      // Title
+      ctx.fillStyle = isDark ? '#f1f5f9' : '#1e293b'
+      ctx.font = 'bold 26px -apple-system, BlinkMacSystemFont, sans-serif'
+      ctx.fillText('Age Calculator', 100, 70)
+
+      // Main age
+      ctx.fillStyle = '#ea580c'
+      ctx.font = 'bold 48px -apple-system, BlinkMacSystemFont, sans-serif'
+      const ageStr = `${years} year${years > 1 ? 's' : ''}`
+      ctx.fillText(ageStr, 50, 140)
+
+      // Sub age
+      ctx.fillStyle = isDark ? '#94a3b8' : '#64748b'
+      ctx.font = '16px -apple-system, BlinkMacSystemFont, sans-serif'
+      ctx.fillText(`${months} months · ${totalWeeks.toLocaleString()} weeks · ${preciseDays.toLocaleString()} days`, 50, 170)
+
+      // Divider
+      ctx.strokeStyle = isDark ? 'rgba(148,163,184,0.3)' : 'rgba(100,116,139,0.3)'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(50, 195)
+      ctx.lineTo(W - 50, 195)
+      ctx.stroke()
+
+      // Stats row
+      const stats = [
+        { value: totalMonths.toLocaleString(), label: 'Total Months' },
+        { value: totalWeeks.toLocaleString(), label: 'Total Weeks' },
+        { value: preciseDays.toLocaleString(), label: 'Total Days' },
+      ]
+      const statWidth = (W - 100) / 3
+      stats.forEach((s, i) => {
+        const x = 50 + i * statWidth
+        ctx.fillStyle = '#ea580c'
+        ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText(s.value, x + statWidth / 2, 230)
+        ctx.fillStyle = isDark ? '#94a3b8' : '#64748b'
+        ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif'
+        ctx.fillText(s.label, x + statWidth / 2, 252)
+      })
+      ctx.textAlign = 'left'
+
+      // Next birthday
+      ctx.fillStyle = '#ea580c'
+      ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, sans-serif'
+      ctx.fillText('🎉 Next Birthday', 50, 290)
+      ctx.fillStyle = isDark ? '#cbd5e1' : '#475569'
+      ctx.font = '13px -apple-system, BlinkMacSystemFont, sans-serif'
+      const nextBdayText = daysUntil === 0 ? 'Today!' : `${daysUntil} days until your ${ordinal(nextAge)} birthday`
+      ctx.fillText(nextBdayText, 50, 312)
+
+      // Footer
+      ctx.fillStyle = isDark ? '#64748b' : '#94a3b8'
+      ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif'
+      ctx.fillText('agecalculator.help', W - 130, H - 20)
+    }
+
+    // --- Download Card ---
+    $('downloadCardBtn').addEventListener('click', () => {
+      // Re-draw to ensure fresh state
+      const dob = new Date(dobInput.value + 'T00:00:00')
+      const ageAt = new Date(ageAtInput.value + 'T00:00:00')
+      if (isNaN(dob.getTime()) || isNaN(ageAt.getTime())) return
+
+      let years = ageAt.getFullYear() - dob.getFullYear()
+      let months = ageAt.getMonth() - dob.getMonth()
+      let days = ageAt.getDate() - dob.getDate()
+      if (days < 0) {
+        months--
+        const prevMonth = new Date(ageAt.getFullYear(), ageAt.getMonth(), 0)
+        days += prevMonth.getDate()
+      }
+      if (months < 0) { years--; months += 12 }
+      const utcDiff = Date.UTC(ageAt.getFullYear(), ageAt.getMonth(), ageAt.getDate()) - Date.UTC(dob.getFullYear(), dob.getMonth(), dob.getDate())
+      const preciseDays = Math.floor(utcDiff / (1000 * 60 * 60 * 24))
+      const totalWeeks = Math.floor(preciseDays / 7)
+      const totalMonths = years * 12 + months
+
+      const today = new Date(); today.setHours(0,0,0,0)
+      let nextBday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate())
+      if (nextBday <= today) nextBday = new Date(today.getFullYear() + 1, dob.getMonth(), dob.getDate())
+      const daysUntil = Math.ceil((nextBday - today) / (1000 * 60 * 60 * 24))
+      const nextAge = nextBday.getFullYear() - dob.getFullYear()
+
+      drawShareCard(years, months, preciseDays, totalWeeks, totalMonths, dob, nextAge, daysUntil)
+
+      const canvas = $('shareCanvas')
+      const link = document.createElement('a')
+      link.download = 'my-age-card.png'
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+      showToast('Age card downloaded!')
+    })
+
+    // --- Events ---
+    calcBtn.addEventListener('click', calculate)
+    dobInput.addEventListener('change', calculate)
+    ageAtInput.addEventListener('change', calculate)
+
+    // --- Auto calculate on load ---
+    calculate()
+  </script>
+</body>
+</html>
